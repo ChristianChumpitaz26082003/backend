@@ -56,18 +56,15 @@ public class CRUDReponedorController {
             Optional<Producto> productoExistente = productoService.obtenerProductoPorId(id);
             if (productoExistente.isPresent()) {
                 Producto producto = productoExistente.get();
-
-                // Actualiza los campos del producto
                 producto.setNombre(productoActualizado.getNombre());
                 producto.setDescripcion(productoActualizado.getDescripcion());
                 producto.setPrecio(productoActualizado.getPrecio());
                 producto.setStock(productoActualizado.getStock());
-                producto.setIdCategoria(productoActualizado.getIdCategoria());
-                producto.setIdProveedor(productoActualizado.getIdProveedor());
+                producto.setCategoria(productoActualizado.getCategoria());
+                producto.setProveedor(productoActualizado.getProveedor());
                 producto.setFechaCaducidad(productoActualizado.getFechaCaducidad());
                 producto.setFechaIngreso(productoActualizado.getFechaIngreso());
                 producto.setEstado(productoActualizado.getEstado());
-
                 Producto actualizado = productoService.modificarProducto(producto);
                 return ResponseEntity.ok(actualizado);
             } else {

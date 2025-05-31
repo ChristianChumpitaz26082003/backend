@@ -4,7 +4,9 @@ import com.sistema.gestion.dto.VentaRequest;
 import com.sistema.gestion.modelo.*;
 import com.sistema.gestion.repositorio.*;
 import org.springframework.stereotype.Service;
-import java.time.LocalDate;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,26 +38,32 @@ public class VentaService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         Venta venta = new Venta();
-        venta.setFecha(LocalDate.now());
+        venta.setFecha(LocalDateTime.now());
         venta.setCliente(cliente);
         venta.setUsuario(usuario);
-        venta.setTotal(0); 
+        venta.setTotal(BigDecimal.ZERO);
+        venta.setEstado(Venta.EstadoVenta.PENDIENTE);
         venta = ventaRepository.save(venta);
 
-        double totalVenta = 0;
+        BigDecimal totalVenta = BigDecimal.ZERO;
         List<DetalleVenta> detalles = new ArrayList<>();
 
         for (VentaRequest.ItemVenta item : request.getItems()) {
             Producto producto = productoRepository.findById(item.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
-            double subtotal = producto.getPrecio() * item.getCantidad();
-            totalVenta += subtotal;
+            BigDecimal subtotal = producto.getPrecio().multiply(BigDecimal.valueOf(item.getCantidad()));
+            totalVenta = totalVenta.add(subtotal);
 
             producto.setStock(producto.getStock() - item.getCantidad());
             productoRepository.save(producto);
 
-            DetalleVenta detalle = new DetalleVenta(null, venta, producto, item.getCantidad(), subtotal);
+            DetalleVenta detalle = new DetalleVenta();
+            detalle.setVenta(venta);
+            detalle.setProducto(producto);
+            detalle.setCantidad(item.getCantidad());
+            detalle.setPrecioUnitario(producto.getPrecio());
+            detalle.setSubtotal(subtotal);
             detalles.add(detalle);
         }
 
