@@ -15,7 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,25 +54,18 @@ public class AuthController {
                     requestDto.getPassword() == null || requestDto.getPassword().trim().isEmpty()) {
                 return ResponseEntity.badRequest().body("Username y password son requeridos");
             }
-
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             requestDto.getUsername(),
                             requestDto.getPassword()));
-
             Usuario usuario = usuarioService.getUsuarioByUsername(requestDto.getUsername());
-
-            // Generar y enviar OTP
             String otp = mfaService.generateOtp(requestDto.getUsername());
             mfaService.sendOtpEmail(usuario.getCorreo(), otp);
-
-            // Registrar intento de login (fase 1)
             LoginLog log = new LoginLog();
             log.setUsername(requestDto.getUsername());
             log.setIp(request.getRemoteAddr());
             log.setFechaHora(java.time.LocalDateTime.now());
             loginLogRepository.save(log);
-
             return ResponseEntity.ok("Código MFA enviado al correo electrónico");
 
         } catch (BadCredentialsException e) {
@@ -85,21 +78,16 @@ public class AuthController {
     @PostMapping("/login/mfa")
     public ResponseEntity<?> verifyMfa(@RequestBody MfaRequest mfaRequest) {
         boolean validOtp = mfaService.verifyOtp(mfaRequest.getUsername(), mfaRequest.getOtp());
-
-        // Registrar intento (válido o inválido)
         LoginLog log = new LoginLog();
         log.setUsername(mfaRequest.getUsername());
         log.setIp(request.getRemoteAddr());
         log.setFechaHora(java.time.LocalDateTime.now());
         loginLogRepository.save(log);
-
         if (!validOtp) {
             return ResponseEntity.status(401).body("Código MFA inválido o expirado");
         }
-
-        UserDetails userDetails = usuarioService.loadUserByUsername(mfaRequest.getUsername());
-        final String token = jwtUtils.generateToken(userDetails);
-
+        Usuario usuario = usuarioService.getUsuarioByUsername(mfaRequest.getUsername());
+        String token = jwtUtils.generateToken(usuario);
         return ResponseEntity.ok(new AuthResponse(token));
     }
 

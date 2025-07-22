@@ -1,8 +1,10 @@
 package com.sistema.gestion.servicios;
 
+
 import com.sistema.gestion.dto.VentaRequest;
 import com.sistema.gestion.modelo.*;
 import com.sistema.gestion.repositorio.*;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,10 +22,10 @@ public class VentaService {
     private final ClienteRepository clienteRepository;
 
     public VentaService(VentaRepository ventaRepository,
-                        DetalleVentaRepository detalleVentaRepository,
-                        ProductoRepository productoRepository,
-                        UsuarioRepository usuarioRepository,
-                        ClienteRepository clienteRepository) {
+            DetalleVentaRepository detalleVentaRepository,
+            ProductoRepository productoRepository,
+            UsuarioRepository usuarioRepository,
+            ClienteRepository clienteRepository) {
         this.ventaRepository = ventaRepository;
         this.detalleVentaRepository = detalleVentaRepository;
         this.productoRepository = productoRepository;
@@ -71,4 +73,8 @@ public class VentaService {
         venta.setTotal(totalVenta);
         return ventaRepository.save(venta);
     }
+
+    
+
+    
 }

@@ -26,7 +26,7 @@ public class DetalleVenta {
     private int cantidad;
     
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal precioUnitario; // Precio en el momento de la venta
+    private BigDecimal precioUnitario; 
     
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal subtotal;

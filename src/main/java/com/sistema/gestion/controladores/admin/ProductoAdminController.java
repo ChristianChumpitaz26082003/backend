@@ -1,18 +1,20 @@
-package com.sistema.gestion.controladores;
+package com.sistema.gestion.controladores.admin;
 
 import com.sistema.gestion.modelo.Producto;
 import com.sistema.gestion.servicios.ProductoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 @RestController
-@RequestMapping("/api/reponedor")
-public class CRUDReponedorController {
+@RequestMapping("/api/admin")
+public class ProductoAdminController {
 
     @Autowired
     private ProductoService productoService;
@@ -28,9 +30,13 @@ public class CRUDReponedorController {
         }
     }
 
-    @PostMapping("/agregarProducto")
-    public ResponseEntity<?> agregarProducto(@RequestBody Producto producto) {
+    @PostMapping(value = "/agregarProducto", consumes = { "multipart/form-data" })
+    public ResponseEntity<?> agregarProducto(
+            @RequestPart("producto") Producto producto,
+            @RequestPart("imagen") MultipartFile imagen) {
         try {
+            String urlImagen = productoService.subirImagen(imagen);
+            producto.setImagenUrl(urlImagen);
             Producto nuevoProducto = productoService.agregarProducto(producto);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevoProducto);
         } catch (Exception e) {
@@ -50,12 +56,16 @@ public class CRUDReponedorController {
         }
     }
 
-    @PutMapping("/modificarProducto/{id}")
-    public ResponseEntity<?> modificarProducto(@PathVariable Long id, @RequestBody Producto productoActualizado) {
+    @PutMapping(value = "/modificarProducto/{id}", consumes = { "multipart/form-data" })
+    public ResponseEntity<?> modificarProducto(
+            @PathVariable Long id,
+            @RequestPart("producto") Producto productoActualizado,
+            @RequestPart(value = "imagen", required = false) MultipartFile imagen) {
         try {
             Optional<Producto> productoExistente = productoService.obtenerProductoPorId(id);
             if (productoExistente.isPresent()) {
                 Producto producto = productoExistente.get();
+
                 producto.setNombre(productoActualizado.getNombre());
                 producto.setDescripcion(productoActualizado.getDescripcion());
                 producto.setPrecio(productoActualizado.getPrecio());
@@ -65,6 +75,12 @@ public class CRUDReponedorController {
                 producto.setFechaCaducidad(productoActualizado.getFechaCaducidad());
                 producto.setFechaIngreso(productoActualizado.getFechaIngreso());
                 producto.setEstado(productoActualizado.getEstado());
+
+                if (imagen != null && !imagen.isEmpty()) {
+                    String urlImagen = productoService.subirImagen(imagen);
+                    producto.setImagenUrl(urlImagen);
+                }
+
                 Producto actualizado = productoService.modificarProducto(producto);
                 return ResponseEntity.ok(actualizado);
             } else {
@@ -75,5 +91,5 @@ public class CRUDReponedorController {
                     .body("Error al modificar el producto: " + e.getMessage());
         }
     }
-
+    
 }

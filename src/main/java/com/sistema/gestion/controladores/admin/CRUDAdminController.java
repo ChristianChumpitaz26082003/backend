@@ -1,4 +1,5 @@
-package com.sistema.gestion.controladores;
+package com.sistema.gestion.controladores.admin;
+
 
 import com.sistema.gestion.dto.RegistroRequest;
 import com.sistema.gestion.modelo.Usuario;
@@ -7,10 +8,8 @@ import com.sistema.gestion.modelo.LoginLog;
 import com.sistema.gestion.repositorio.MfaLogRepository;
 import com.sistema.gestion.repositorio.LoginLogRepository;
 import com.sistema.gestion.servicios.RegistroUsuarioService;
-
 import java.util.List;
 import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,11 +23,12 @@ public class CRUDAdminController {
     private final LoginLogRepository loginLogRepository;
 
     public CRUDAdminController(RegistroUsuarioService registroUsuarioService,
-                               MfaLogRepository mfaLogRepository,
-                               LoginLogRepository loginLogRepository) {
+            MfaLogRepository mfaLogRepository,
+            LoginLogRepository loginLogRepository) {
         this.registroUsuarioService = registroUsuarioService;
         this.mfaLogRepository = mfaLogRepository;
         this.loginLogRepository = loginLogRepository;
+       
     }
 
     @PostMapping("/registro")
@@ -43,17 +43,17 @@ public class CRUDAdminController {
         }
     }
 
-    
     @GetMapping("/logs/mfa")
     public ResponseEntity<List<MfaLog>> obtenerTodosLosLogsMfa() {
         List<MfaLog> logs = mfaLogRepository.findAll();
         return ResponseEntity.ok(logs);
     }
 
-    
     @GetMapping("/logs/login")
     public ResponseEntity<List<LoginLog>> obtenerTodosLosLogsLogin() {
         List<LoginLog> logs = loginLogRepository.findAll();
         return ResponseEntity.ok(logs);
     }
+
+    
 }

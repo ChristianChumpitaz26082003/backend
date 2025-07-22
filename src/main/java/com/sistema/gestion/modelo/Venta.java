@@ -24,7 +24,7 @@ public class Venta {
     private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
-    private EstadoVenta estado = EstadoVenta.PENDIENTE; // Nuevo campo para estado
+    private EstadoVenta estado = EstadoVenta.COMPLETADA; // Nuevo campo para estado
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "usuario_id", nullable = false)

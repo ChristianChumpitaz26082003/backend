@@ -1,12 +1,15 @@
 package com.sistema.gestion.configuracion;
 
 import com.sistema.gestion.servicios.UsuarioService;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -14,6 +17,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -31,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
-        
+
         if (request.getServletPath().startsWith("/api/auth")) {
             filterChain.doFilter(request, response);
             return;
@@ -49,15 +54,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = usuarioService.loadUserByUsername(username);
-                
+
                 if (jwtUtils.validateToken(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken authToken = 
-                        new UsernamePasswordAuthenticationToken(
+                    // Extraer roles desde el token
+                    Claims claims = jwtUtils.extractAllClaims(token);
+                    List<?> rawRoles = claims.get("roles", List.class);
+                    List<String> roles = rawRoles.stream()
+                            .filter(role -> role instanceof String)
+                            .map(role -> (String) role)
+                            .toList();
+
+                    List<GrantedAuthority> authorities = roles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities());
+                            authorities);
+
                     authToken.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request));
+                            new WebAuthenticationDetailsSource().buildDetails(request));
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }

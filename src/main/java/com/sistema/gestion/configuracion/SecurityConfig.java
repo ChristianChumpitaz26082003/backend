@@ -1,6 +1,11 @@
 package com.sistema.gestion.configuracion;
 
 import com.sistema.gestion.servicios.UsuarioService;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,15 +27,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     private final UsuarioService usuarioService;
     private final JwtAuthenticationFilter jwtFilter;
-
     public SecurityConfig(UsuarioService usuarioService, JwtAuthenticationFilter jwtFilter) {
         this.usuarioService = usuarioService;
         this.jwtFilter = jwtFilter;
     }
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -66,11 +68,12 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.addAllowedOrigin("http://localhost:5173");
-        configuration.addAllowedMethod("*");
+        configuration.setAllowedMethods(Collections.unmodifiableList(Arrays.asList("GET","POST","PUT","DELETE")));
         configuration.addAllowedHeader("*");
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
